@@ -70,7 +70,8 @@ function Shader(gl) {
 			async: true,
 			error: (jqXhr, textStatus, errorThrown) => {
 				var errorMessage = 'Failed to load the vertex shader: ' + errorThrown + '<br>';
-				errorCallback.call(context, errorMessage);
+				if (errorCallback)
+					errorCallback.call(context, errorMessage);
 			}
 		});
 		var fragDeferred = $.ajax({
@@ -79,12 +80,14 @@ function Shader(gl) {
 			async: true,
 			error: (jqXhr, textStatus, errorThrown) => {
 				var errorMessage = 'Failed to load the fragment shader: ' + errorThrown + '<br>';
-				errorCallback.call(context, errorMessage);
+				if (errorCallback)
+					errorCallback.call(context, errorMessage);
 			}
 		});
 		$.when(vertDeferred, fragDeferred).then(function(vertSource, fragSource) {
 			createProgram.call(this, vertSource[0], fragSource[0], attributes);
-			successCallback.call(context);
+			if (successCallback)
+				successCallback.call(context);
 		}.bind(this));
 	};
 	/**
