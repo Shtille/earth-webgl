@@ -16,6 +16,8 @@
 function Camera(target, distance) {
 	var target = target;
 	var distance = distance;
+	var position = vec3.create();
+	var viewMatrix = mat4.create();
 	var alpha = 0.0;
 	var theta = 0.0;
 	const minTheta = -1.5;
@@ -47,7 +49,16 @@ function Camera(target, distance) {
 		theta += value;
 		clampTheta.call(this);
 	};
+	this.getDistance = function() {
+		return distance;
+	};
+	this.getPosition = function() {
+		return position;
+	};
 	this.getViewMatrix = function() {
+		return viewMatrix;
+	};
+	this.update = function() {
 		//      |	s[0]   s[1]   s[2]  -s.e  |
 		//      |	u[0]   u[1]   u[2]  -u.e  |
 		//  V = |  -f[0]  -f[1]  -f[2]   f.e  |
@@ -72,11 +83,11 @@ function Camera(target, distance) {
 		var sde = vec3.dot(s, eye);
 		var ude = vec3.dot(u, eye);
 		var fde = vec3.dot(f, eye);
-		var m = mat4.fromValues(
+		viewMatrix = mat4.fromValues(
 			s[0], u[0], -f[0], 0,
 			s[1], u[1], -f[1], 0,
 			s[2], u[2], -f[2], 0,
 			-sde, -ude,   fde, 1);
-		return m;
+		position = eye;
 	};
 }

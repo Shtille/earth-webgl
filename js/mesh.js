@@ -88,9 +88,9 @@ function Mesh(gl, vertexFormat) {
 		freeArrays.call(this);
 	};
 	/**
-	 * Draws primitives.
+	 * Renders primitives.
 	 */
-	this.draw = function() {
+	this.render = function() {
 		if (this._vertexBuffer === null)
 			return;
 		// Bind buffers for rendering

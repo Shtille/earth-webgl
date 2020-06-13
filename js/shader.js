@@ -87,7 +87,7 @@ function Shader(gl) {
 		$.when(vertDeferred, fragDeferred).then(function(vertSource, fragSource) {
 			createProgram.call(this, vertSource[0], fragSource[0], attributes);
 			if (successCallback)
-				successCallback.call(context);
+				successCallback.call(context, this);
 		}.bind(this));
 	};
 	/**
