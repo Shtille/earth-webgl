@@ -34,7 +34,6 @@ function OrbitControls(camera, element) {
 		isPanning = true;
 	}
 	function onMouseMove(event) {
-		// event.offsetX, event.offsetY
 		if (isPanning) {
 			pan(event.offsetX, event.offsetY);
 			oldX = event.offsetX;
@@ -50,16 +49,72 @@ function OrbitControls(camera, element) {
 			isPanning = false;
 		}
 	}
+	function onTouchStart(event) {
+		switch (event.touches.length) {
+		case 1:	// one-fingered touch: rotate
+			// Begin pan
+			oldX = event.touches[0].pageX;
+			oldY = event.touches[0].pageY;
+			isPanning = true;
+			break;
+		case 2:	// two-fingered touch: dolly
+			break;
+		case 3: // three-fingered touch: pan
+			break;
+		}
+	}
+	function onTouchMove(event) {
+		switch (event.touches.length) {
+		case 1:	// one-fingered touch: rotate
+			if (isPanning) {
+				pan(event.touches[0].pageX, event.touches[0].pageY);
+				oldX = event.touches[0].pageX;
+				oldY = event.touches[0].pageY;
+			}
+			break;
+		case 2:	// two-fingered touch: dolly
+			break;
+		case 3: // three-fingered touch: pan
+			break;
+		}
+	}
+	function onTouchEnd(event) {
+		switch (event.touches.length) {
+		case 1:	// one-fingered touch: rotate
+			// End pan
+			if (isPanning) {
+				pan(event.touches[0].pageX, event.touches[0].pageY);
+				oldX = 0;
+				oldY = 0;
+				isPanning = false;
+			}
+			break;
+		case 2:	// two-fingered touch: dolly
+			break;
+		case 3: // three-fingered touch: pan
+			break;
+		}
+	}
 
 	var create = function() {
+		// Mouse events
 		element.addEventListener('mousedown', onMouseDown, false);
 		element.addEventListener('mousemove', onMouseMove, false);
 		element.addEventListener('mouseup', onMouseUp, false);
+		// Touch events
+		element.addEventListener('touchstart', onTouchStart, false);
+		element.addEventListener('touchmove', onTouchMove, false);
+		element.addEventListener('touchend', onTouchEnd, false);
 	};
 	this.destroy = function() {
+		// Mouse events
 		element.removeEventListener('mousedown', onMouseDown, false);
 		element.removeEventListener('mousemove', onMouseMove, false);
 		element.removeEventListener('mouseup', onMouseUp, false);
+		// Touch events
+		element.addEventListener('touchstart', onTouchStart, false);
+		element.addEventListener('touchmove', onTouchMove, false);
+		element.addEventListener('touchend', onTouchEnd, false);
 	};
 	
 	create.call(this);
