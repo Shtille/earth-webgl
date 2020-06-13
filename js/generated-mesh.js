@@ -167,22 +167,43 @@ function GeneratedMesh(gl, vertexFormat) {
 	 * @param {Number} loops   The number of loops.
 	 */
 	this.createSphere = function(radius, slices, loops) {
-		this._vertices = new Array((slices + 1)*(loops));
-		var index = 0;
+		// Fill sinuses and cosinuses values arrays first
+		var array_sin_aj = new Array(loops);
+		var array_cos_aj = new Array(loops);
+		var array_part_j = new Array(loops);
+		var array_sin_ai = new Array(slices + 1);
+		var array_cos_ai = new Array(slices + 1);
+		var array_part_i = new Array(slices + 1);
 		for (var j = 0; j < loops; j++) {
 			var part_j = j / (loops-1);
 			var aj = (Math.PI / (loops-1)) * j;
-			var sin_aj = Math.sin(aj);
-			var cos_aj = Math.cos(aj);
+			array_sin_aj[j] = Math.sin(aj);
+			array_cos_aj[j] = Math.cos(aj);
+			array_part_j[j] = part_j;
+		}
+		for (var i = 0; i <= slices; i++) {
+			var part_i = i / slices;
+			var ai = (2*Math.PI / slices) * i;
+			array_sin_ai[i] = Math.sin(ai);
+			array_cos_ai[i] = Math.cos(ai);
+			array_part_i[i] = part_i;
+		}
+		// Then fill the data
+		this._vertices = new Array((slices + 1)*(loops));
+		var index = 0;
+		for (var j = 0; j < loops; j++) {
+			var sin_aj = array_sin_aj[j];
+			var cos_aj = array_cos_aj[j];
 			for (var i = 0; i <= slices; i++) {
-				var part_i = i / slices;
-				var ai = (2*Math.PI / slices) * i;
-				var sin_ai = Math.sin(ai);
-				var cos_ai = Math.cos(ai);
+				var sin_ai = array_sin_ai[i];
+				var cos_ai = array_cos_ai[i];
+				var normal = [sin_aj * cos_ai, -cos_aj, -sin_aj * sin_ai];
+				var position = [normal[0] * radius, normal[1] * radius, normal[2] * radius];
+				var texcoord = [array_part_i[i], array_part_j[j]];
 				this._vertices[index] = {
-					normal: [sin_aj*cos_ai, -cos_aj, -sin_aj*sin_ai],
-					position: [sin_aj*cos_ai * radius, -cos_aj * radius, -sin_aj*sin_ai * radius],
-					texcoord: [part_i, part_j]
+					normal: normal,
+					position: position,
+					texcoord: texcoord
 				};
 				index++;
 			}
