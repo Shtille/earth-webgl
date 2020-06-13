@@ -21,6 +21,7 @@ function Application(gl) {
 	const kScaleDepth = 0.25;
 	const kInvWaveLength = [1.0 / Math.pow(0.650, 4.0), 1.0 / Math.pow(0.570, 4.0), 1.0 / Math.pow(0.475, 4.0)];
 
+	var requirements = null;
 	var groundShader = new Shader(gl);
 	var cloudsShader = new Shader(gl);
 	var skyShader = new Shader(gl);
@@ -52,8 +53,17 @@ function Application(gl) {
 	var setDefaultStates = function() {
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
 		gl.clearDepth(1.0);                 // Clear everything
+
 		gl.enable(gl.DEPTH_TEST);           // Enable depth testing
 		gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+
+		gl.cullFace(gl.BACK);
+		gl.frontFace(gl.CCW);
+		gl.enable(gl.CULL_FACE);
+
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		gl.enable(gl.BLEND);
+
 		gl.viewport(0, 0, width, height);
 	};
 	var updateProjectionMatrix = function() {
@@ -62,9 +72,8 @@ function Application(gl) {
 
 			const fieldOfView = 45 * Math.PI / 180;   // in radians
 			const aspect = width / height;
-			const zNear = 0.1;
-			const zFar = 100.0;
-			mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
+			const ranges = camera.getZNearZFar();
+			mat4.perspective(projectionMatrix, fieldOfView, aspect, ranges.zNear, ranges.zFar);
 		}
 	};
 	var updateViewMatrix = function() {
@@ -74,7 +83,17 @@ function Application(gl) {
 		const error = document.getElementById("error");
 		error.innerHTML += errorMessage;
 	};
+	var onRequirementsPassed = function() {
+		hideLoading();
+		ready = true;
+	};
 	var onTextureLoaded = function() {
+		requirements.remove();
+	};
+	var generateMesh = function() {
+		sphereMesh.createSphere(1, 128, 64);
+		sphereMesh.makeRenderable();
+		requirements.remove();
 	};
 	var bindShaderVariables = function() {
 		const position = camera.getPosition();
@@ -91,6 +110,7 @@ function Application(gl) {
 		});
 	};
 	var onGroundShaderLoaded = function(shader) {
+		requirements.remove();
 		gl.useProgram(shader.program);
 
 		gl.uniform3fv(shader.getUniformLocation("u_to_light"), kSunDirection);
@@ -105,10 +125,10 @@ function Application(gl) {
 		gl.uniform1f(shader.getUniformLocation("u_scale"), 1.0 / (kOuterRadius - kInnerRadius));
 		gl.uniform1f(shader.getUniformLocation("u_scale_depth"), kScaleDepth);
 		gl.uniform1f(shader.getUniformLocation("u_scale_over_scale_depth"), 1.0 / (kOuterRadius - kInnerRadius) / kScaleDepth);
-		gl.uniform1i(shader.getUniformLocation("u_samples"), 4);
 		gl.uniform1i(shader.getUniformLocation("u_earth_texture"), 0);
 	};
 	var onCloudsShaderLoaded = function(shader) {
+		requirements.remove();
 		gl.useProgram(shader.program);
 
 		gl.uniform3fv(shader.getUniformLocation("u_to_light"), kSunDirection);
@@ -123,10 +143,10 @@ function Application(gl) {
 		gl.uniform1f(shader.getUniformLocation("u_scale"), 1.0 / (kOuterRadius - kCloudsRadius));
 		gl.uniform1f(shader.getUniformLocation("u_scale_depth"), kScaleDepth);
 		gl.uniform1f(shader.getUniformLocation("u_scale_over_scale_depth"), 1.0 / (kOuterRadius - kCloudsRadius) / kScaleDepth);
-		gl.uniform1i(shader.getUniformLocation("u_samples"), 4);
 		gl.uniform1i(shader.getUniformLocation("u_clouds_texture"), 0);
 	};
 	var onSkyShaderLoaded = function(shader) {
+		requirements.remove();
 		gl.useProgram(shader.program);
 		
 		gl.uniform3fv(shader.getUniformLocation("u_to_light"), kSunDirection);
@@ -141,7 +161,6 @@ function Application(gl) {
 		gl.uniform1f(shader.getUniformLocation("u_scale"), 1.0 / (kOuterRadius - kInnerRadius));
 		gl.uniform1f(shader.getUniformLocation("u_scale_depth"), kScaleDepth);
 		gl.uniform1f(shader.getUniformLocation("u_scale_over_scale_depth"), 1.0 / (kOuterRadius - kInnerRadius) / kScaleDepth);
-		gl.uniform1i(shader.getUniformLocation("u_samples"), 4);
 		gl.uniform1f(shader.getUniformLocation("u_g"), g);
 		gl.uniform1f(shader.getUniformLocation("u_g2"), g * g);
 	};
@@ -202,6 +221,8 @@ function Application(gl) {
 	this.load = function() {
 		setDefaultStates();
 
+		showLoading();
+
 		// Vertex format
 		var namedAttributes = ["a_position", "a_normal", "a_texcoord"];
 		var attributes = [
@@ -221,23 +242,32 @@ function Application(gl) {
 
 		// Load textures
 		groundTexture.loadFromFile("textures/earth.jpg", onTextureLoaded, onError, this);
-		cloudsTexture.loadFromFile("textures/clouds.jpg", onTextureLoaded, onError, this);
+		cloudsTexture.loadFromFile("textures/clouds.jpg", onTextureLoaded, onError, this, true);
 
 		// Create sphere mesh
+		// Push mesh generation in the next event cycle 
+		// just to make window show loading spinner
 		sphereMesh = new GeneratedMesh(gl, vertexFormat);
-		sphereMesh.createSphere(1, 128, 64);
-		sphereMesh.makeRenderable();
+		window.setTimeout(generateMesh.bind(this));
 
 		// Create camera
-		var target = vec3.fromValues(0, 0, 0);
-		var distance = 5.0;
-		camera = new Camera(target, distance);
+		camera = new Camera(kEarthPosition, kCameraDistance, kOuterRadius);
 
 		// Create orbit controls
 		orbitControls = new OrbitControls(camera, gl.canvas);
 
-		// Create model matrices
+		// Create constant model matrices
 		mat4.fromScaling(groundModelMatrix, [kInnerRadius, kInnerRadius, kInnerRadius]);
+
+		// Create resource requirements
+		requirements = new ResourceRequirement([
+			"groundShader",
+			"cloudsShader",
+			"skyShader",
+			"groundTexture",
+			"cloudsTexture",
+			"sphereMesh",
+		], onRequirementsPassed, this);
 	};
 	this.unload = function() {
 		groundShader.destroy();
@@ -265,7 +295,8 @@ function Application(gl) {
 		mat4.fromScaling(skyModelMatrix, [kOuterRadius, kOuterRadius, kOuterRadius]);
 		mat4.multiply(skyModelMatrix, skyModelMatrix, rotationMatrix);
 
-		bindShaderVariables();
+		if (ready)
+			bindShaderVariables();
 	};
 	this.render = function() {
 		// Clear context

@@ -14,9 +14,14 @@ function Texture(gl) {
 	var gl = gl;
 	var image = null;
 
-	const internalFormat = gl.RGBA;
-	const srcFormat = gl.RGBA;
+	var internalFormat = gl.RGBA;
+	var srcFormat = gl.RGBA;
 	const srcType = gl.UNSIGNED_BYTE;
+
+	var setGrayscale = function() {
+		internalFormat = gl.LUMINANCE;
+		srcFormat = gl.LUMINANCE;
+	};
 
 	this.id = null; // texture ID
 
@@ -24,6 +29,8 @@ function Texture(gl) {
 	 * Destroys texture.
 	 */
 	this.destroy = function() {
+		if (this.id)
+			gl.deleteTexture(this.id);
 		gl = null;
 		if (image) {
 			// Cancel loading
@@ -31,8 +38,6 @@ function Texture(gl) {
 			image.onload = null;
 			image.onerror = null;
 		}
-		if (this.id)
-			gl.deleteTexture(this.id);
 	};
 
 	/**
@@ -52,10 +57,14 @@ function Texture(gl) {
 	 * @param {Function} successCallback  The success callback. Optional.
 	 * @param {Function} errorCallback    The error callback. Optional.
 	 * @param {Object}   context          The callbacks context.
+	 * @param {Boolean}  grayscale        Flag if image grayscale. Optional.
 	 */
-	this.loadFromFile = function(url, successCallback, errorCallback, context) {
+	this.loadFromFile = function(url, successCallback, errorCallback, context, grayscale) {
 		this.id = gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D, this.id);
+
+		if (grayscale)
+			setGrayscale();
 
 		// Because images have to be download over the internet
 		// they might take a moment until they are ready.

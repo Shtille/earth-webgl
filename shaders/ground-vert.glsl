@@ -1,8 +1,6 @@
-#version 330 core
-
-layout(location = 0) in vec3 a_position;
-layout(location = 1) in vec3 a_normal;
-layout(location = 2) in vec2 a_texcoord;
+attribute vec3 a_position;
+attribute vec3 a_normal;
+attribute vec2 a_texcoord;
 
 uniform mat4 u_projection_view;
 uniform mat4 u_model;
@@ -23,13 +21,11 @@ uniform float u_scale;				// 1 / (u_outer_radius - u_inner_radius)
 uniform float u_scale_depth;		// The scale depth (i.e. the altitude at which the atmosphere's average density is found)
 uniform float u_scale_over_scale_depth;	// u_scale / u_scale_depth
 
-uniform int u_samples;
-
 uniform bool u_from_space;
 
-out vec3 v_color;
-out vec3 v_attenuate;
-out vec2 v_texcoord;
+varying highp vec3 v_color;
+varying highp vec3 v_attenuate;
+varying highp vec2 v_texcoord;
 
 float scale(float fCos)
 {
@@ -77,7 +73,8 @@ void main(void)
 	float sum_scales = light_scale + camera_scale;
 
 	// Initialize the scattering loop variables
-	float sample_length = far / u_samples;
+	const int num_samples = 4;
+	float sample_length = far / float(num_samples);
 	float scaled_length = sample_length * u_scale;
 	vec3 sample_ray = ray * sample_length;
 	vec3 sample_point = start + sample_ray * 0.5;
@@ -85,7 +82,7 @@ void main(void)
 	// Now loop through the sample rays
 	vec3 front_color = vec3(0.0);
 	vec3 attenuate; // attenuation factor for the ground
-	for(int i = 0; i < u_samples; i++)
+	for(int i = 0; i < num_samples; i++)
 	{
 		float height = length(sample_point);
 		float depth = exp(u_scale_over_scale_depth * (u_inner_radius - height));

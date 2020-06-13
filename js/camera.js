@@ -12,10 +12,12 @@
  *
  * @param {vec3}   target    The target position.
  * @param {Number} distance  The distance from target to eye.
+ * @param {Number} radius    The radius of the object.
  */
-function Camera(target, distance) {
+function Camera(target, distance, radius) {
 	var target = target;
 	var distance = distance;
+	var radius = radius;
 	var position = vec3.create();
 	var viewMatrix = mat4.create();
 	var alpha = 0.0;
@@ -29,35 +31,80 @@ function Camera(target, distance) {
 			theta = maxTheta;
 	};
 
+	/**
+	 * Returns alpha (angle around Y axis).
+	 */
 	this.getAlpha = function() {
 		return alpha;
 	};
-	this.getTheta = function() {
-		return theta;
-	};
+	/**
+	 * Sets alpha (angle around Y axis).
+	 */
 	this.setAlpha = function(value) {
 		alpha = value;
 	};
+	/**
+	 * Increases alpha by value (angle around Y axis).
+	 *
+	 * @param {Number} value The value in radians.
+	 */
 	this.increaseAlpha = function(value) {
 		alpha += value;
 	};
+	/**
+	 * Returns theta (angle around Z axis).
+	 */
+	this.getTheta = function() {
+		return theta;
+	};
+	/**
+	 * Sets theta (angle around Z axis).
+	 */
 	this.setTheta = function(value) {
 		theta = value;
 		clampTheta.call(this);
 	};
+	/**
+	 * Increases theta by value (angle around Z axis).
+	 *
+	 * @param {Number} value The value in radians.
+	 */
 	this.increaseTheta = function(value) {
 		theta += value;
 		clampTheta.call(this);
 	};
+	/**
+	 * Returns camera distance from target.
+	 */
 	this.getDistance = function() {
 		return distance;
 	};
+	/**
+	 * Returns camera position.
+	 */
 	this.getPosition = function() {
 		return position;
 	};
+	/**
+	 * Returns view matrix.
+	 */
 	this.getViewMatrix = function() {
 		return viewMatrix;
 	};
+	/**
+	 * Returns object with z near and z far values.
+	 */
+	this.getZNearZFar = function() {
+		var zNear = distance - radius;
+		var zFar = distance + radius;
+		return {
+			zNear: zNear,
+			zFar: zFar
+		};
+	};
+	/**
+	 * Updates the camera position and view matrix.
+	 */
 	this.update = function() {
 		//      |	s[0]   s[1]   s[2]  -s.e  |
 		//      |	u[0]   u[1]   u[2]  -u.e  |
@@ -75,7 +122,6 @@ function Camera(target, distance) {
 			-Math.sin(theta) * Math.cos(alpha),
 			 Math.cos(theta),
 			-Math.sin(theta) * Math.sin(alpha));
-		// eye = target - f * distance
 		var eye = vec3.fromValues(
 			target[0] - f[0] * distance,
 			target[1] - f[1] * distance,
