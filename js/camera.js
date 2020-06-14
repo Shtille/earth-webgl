@@ -10,14 +10,26 @@
 /**
  * Defines camera around the target class.
  *
- * @param {vec3}   target    The target position.
- * @param {Number} distance  The distance from target to eye.
- * @param {Number} radius    The radius of the object.
+ * @param {Object} options The options object. Can have following options:
+ *      - {vec3}     target         The target position.
+ *      - {Number}   distance       The distance from target to eye.
+ *      - {Number}   minDistance    The minimum distance.
+ *      - {Number}   maxDistance    The maximum distance.
+ *      - {Number}   innerRadius    The inner radius of the object.
+ *      - {Number}   outerRadius    The outer radius of the object.
+ *      - {Function} zoomCallback   The zoom callback. Optional.
+ *      - {Object}   context        The callback context.
  */
-function Camera(target, distance, radius) {
-	var target = target;
-	var distance = distance;
-	var radius = radius;
+function Camera(options) {
+	var target = options.target;
+	var distance = options.distance;
+	var minDistance = options.minDistance;
+	var maxDistance = options.maxDistance;
+	var innerRadius = options.innerRadius;
+	var outerRadius = options.outerRadius;
+	var zoomCallback = options.zoomCallback;
+	var context = options.context;
+
 	var position = vec3.create();
 	var viewMatrix = mat4.create();
 	var alpha = 0.0;
@@ -74,6 +86,24 @@ function Camera(target, distance, radius) {
 		clampTheta.call(this);
 	};
 	/**
+	 * Zooms in.
+	 */
+	this.zoomIn = function() {
+		distance *= 0.95;
+		distance = Math.max(distance, minDistance);
+		if (zoomCallback)
+			zoomCallback.call(context);
+	};
+	/**
+	 * Zooms out.
+	 */
+	this.zoomOut = function() {
+		distance /= 0.95;
+		distance = Math.min(distance, maxDistance);
+		if (zoomCallback)
+			zoomCallback.call(context);
+	};
+	/**
 	 * Returns camera distance from target.
 	 */
 	this.getDistance = function() {
@@ -95,6 +125,7 @@ function Camera(target, distance, radius) {
 	 * Returns object with z near and z far values.
 	 */
 	this.getZNearZFar = function() {
+		var radius = (distance < outerRadius) ? innerRadius : outerRadius;
 		var zNear = distance - radius;
 		var zFar = distance + radius;
 		return {

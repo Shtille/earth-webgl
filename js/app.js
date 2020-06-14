@@ -9,6 +9,8 @@ function Application(gl) {
 	var gl = gl;
 
 	const kCameraDistance = kEarthRadius * 5.0;
+	const kMaxDistance = kEarthRadius * 10.0;
+	const kMinDistance = kEarthRadius * 1.5;
 	const kInnerRadius = kEarthRadius;
 	const kOuterRadius = kEarthAtmosphereRadius;
 	const kCloudsRadius = kEarthCloudsRadius;
@@ -67,7 +69,7 @@ function Application(gl) {
 		gl.viewport(0, 0, width, height);
 	};
 	var updateProjectionMatrix = function() {
-		if (needUpdateProjectionMatrix) { // || camera.animated()
+		if (needUpdateProjectionMatrix) {
 			needUpdateProjectionMatrix = false;
 
 			const fieldOfView = 45 * Math.PI / 180;   // in radians
@@ -78,6 +80,9 @@ function Application(gl) {
 	};
 	var updateViewMatrix = function() {
 		viewMatrix = camera.getViewMatrix();
+	};
+	var onZoomChanged = function() {
+		needUpdateProjectionMatrix = true;
 	};
 	var onError = function(errorMessage) {
 		const error = document.getElementById("error");
@@ -251,7 +256,16 @@ function Application(gl) {
 		window.setTimeout(generateMesh.bind(this));
 
 		// Create camera
-		camera = new Camera(kEarthPosition, kCameraDistance, kOuterRadius);
+		camera = new Camera({
+			target: kEarthPosition,
+			distance: kCameraDistance,
+			minDistance: kMinDistance,
+			maxDistance: kMaxDistance,
+			innerRadius: kInnerRadius,
+			outerRadius: kOuterRadius,
+			zoomCallback: onZoomChanged,
+			context: this
+		});
 
 		// Create orbit controls
 		orbitControls = new OrbitControls(camera, gl.canvas);

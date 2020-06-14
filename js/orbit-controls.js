@@ -16,63 +16,120 @@
 function OrbitControls(camera, element) {
 	var camera = camera;
 	var element = element || document;
-	var isPanning = false;
-	var oldX = 0;
-	var oldY = 0;
+	var rotateStart = vec2.create();
+	var zoomStart = vec2.create();
+	var zoomEnd = vec2.create();
+	var zoomDelta = vec2.create();
 	const panSpeed = 0.01;
+	const STATE = { NONE: -1, ROTATE: 0, ZOOM: 1, TOUCH_ROTATE: 3, TOUCH_ZOOM: 4 };
+	var state = STATE.NONE;
 
 	function pan(x, y) {
-		var deltaAlpha = (x - oldX) * panSpeed;
-		var deltaTheta = (y - oldY) * panSpeed;
+		var deltaAlpha = (x - rotateStart[0]) * panSpeed;
+		var deltaTheta = (y - rotateStart[1]) * panSpeed;
 		camera.increaseAlpha(deltaAlpha);
 		camera.increaseTheta(deltaTheta);
 	}
+	function zoomIn() {
+		camera.zoomIn();
+	}
+	function zoomOut() {
+		camera.zoomOut();
+	}
 	function onMouseDown(event) {
-		// Begin pan
-		oldX = event.offsetX;
-		oldY = event.offsetY;
-		isPanning = true;
+		event.preventDefault();
+		if (event.button === 0) {
+			state = STATE.ROTATE;
+			vec2.set(rotateStart, event.clientX, event.clientY);
+		} else if (event.button === 1) {
+			state = STATE.ZOOM;
+			vec2.set(rotateStart, event.clientX, event.clientY);
+		} else if (event.button === 2) {
+		}
 	}
 	function onMouseMove(event) {
-		if (isPanning) {
-			pan(event.offsetX, event.offsetY);
-			oldX = event.offsetX;
-			oldY = event.offsetY;
+		event.preventDefault();
+		if (state === STATE.ROTATE) {
+			pan(event.clientX, event.clientY);
+			vec2.set(rotateStart, event.clientX, event.clientY);
+		} else if (state === STATE.ZOOM) {
+			vec2.set(zoomEnd, event.clientX, event.clientY);
+			vec2.sub(zoomDelta, zoomEnd, zoomStart);
+			if (zoomDelta[1] > 0) {
+				zoomOut();
+			} else {
+				zoomIn();
+			}
+			vec2.copy(zoomStart, zoomEnd);
 		}
 	}
 	function onMouseUp(event) {
 		// End pan
-		if (isPanning) {
-			pan(event.offsetX, event.offsetY);
-			oldX = 0;
-			oldY = 0;
-			isPanning = false;
+		if (state === STATE.ROTATE) {
+			pan(event.clientX, event.clientY);
+			vec2.set(rotateStart, 0, 0);
+			state = STATE.NONE;
+		} else if (state === STATE.ZOOM) {
+			vec2.set(zoomEnd, event.clientX, event.clientY);
+			vec2.sub(zoomDelta, zoomEnd, zoomStart);
+			if (zoomDelta[1] > 0) {
+				zoomOut();
+			} else {
+				zoomIn();
+			}
+			vec2.set(zoomStart, 0, 0);
+			state = STATE.NONE;
+		}
+	}
+	function onMouseWheel(event) {
+		if (event.deltaY > 0) {
+			zoomOut();
+		} else {
+			zoomIn();
 		}
 	}
 	function onTouchStart(event) {
 		switch (event.touches.length) {
 		case 1:	// one-fingered touch: rotate
 			// Begin pan
-			oldX = event.touches[0].pageX;
-			oldY = event.touches[0].pageY;
-			isPanning = true;
+			state = STATE.TOUCH_ROTATE;
+			vec2.set(rotateStart, event.touches[0].pageX, event.touches[0].pageY);
 			break;
 		case 2:	// two-fingered touch: dolly
+			state = STATE.TOUCH_ZOOM;
+			var dx = event.touches[0].pageX - event.touches[1].pageX;
+			var dy = event.touches[0].pageY - event.touches[1].pageY;
+			var distance = Math.sqrt(dx*dx + dy*dy);
+			vec2.set(zoomStart, 0, distance);
 			break;
 		case 3: // three-fingered touch: pan
 			break;
 		}
 	}
 	function onTouchMove(event) {
+		event.preventDefault();
+		event.stopPropagation();
 		switch (event.touches.length) {
 		case 1:	// one-fingered touch: rotate
-			if (isPanning) {
+			if (state === STATE.TOUCH_ROTATE) {
 				pan(event.touches[0].pageX, event.touches[0].pageY);
-				oldX = event.touches[0].pageX;
-				oldY = event.touches[0].pageY;
+				vec2.set(rotateStart, event.touches[0].pageX, event.touches[0].pageY);
 			}
 			break;
 		case 2:	// two-fingered touch: dolly
+			if (state === STATE.TOUCH_ZOOM) {
+				var dx = event.touches[0].pageX - event.touches[1].pageX;
+				var dy = event.touches[0].pageY - event.touches[1].pageY;
+				var distance = Math.sqrt(dx*dx + dy*dy);
+				vec2.set(zoomEnd, 0, distance);
+				vec2.sub(zoomDelta, zoomEnd, zoomStart);
+				if (zoomDelta[1] > 0) {
+					zoomIn();
+				} else {
+					zoomOut();
+				}
+				vec2.copy(zoomStart, zoomEnd);
+			}
 			break;
 		case 3: // three-fingered touch: pan
 			break;
@@ -82,14 +139,27 @@ function OrbitControls(camera, element) {
 		switch (event.touches.length) {
 		case 1:	// one-fingered touch: rotate
 			// End pan
-			if (isPanning) {
+			if (state === STATE.TOUCH_ROTATE) {
 				pan(event.touches[0].pageX, event.touches[0].pageY);
-				oldX = 0;
-				oldY = 0;
-				isPanning = false;
+				vec2.set(rotateStart, 0, 0);
+				state = STATE.NONE;
 			}
 			break;
 		case 2:	// two-fingered touch: dolly
+			if (state === STATE.TOUCH_ZOOM) {
+				var dx = event.touches[0].pageX - event.touches[1].pageX;
+				var dy = event.touches[0].pageY - event.touches[1].pageY;
+				var distance = Math.sqrt(dx*dx + dy*dy);
+				vec2.set(zoomEnd, 0, distance);
+				vec2.sub(zoomDelta, zoomEnd, zoomStart);
+				if (zoomDelta[1] > 0) {
+					zoomIn();
+				} else {
+					zoomOut();
+				}
+				vec2.set(zoomStart, 0, 0);
+				state = STATE.NONE;
+			}
 			break;
 		case 3: // three-fingered touch: pan
 			break;
@@ -101,6 +171,7 @@ function OrbitControls(camera, element) {
 		element.addEventListener('mousedown', onMouseDown, false);
 		element.addEventListener('mousemove', onMouseMove, false);
 		element.addEventListener('mouseup', onMouseUp, false);
+		element.addEventListener('wheel', onMouseWheel, false);
 		// Touch events
 		element.addEventListener('touchstart', onTouchStart, false);
 		element.addEventListener('touchmove', onTouchMove, false);
@@ -111,10 +182,11 @@ function OrbitControls(camera, element) {
 		element.removeEventListener('mousedown', onMouseDown, false);
 		element.removeEventListener('mousemove', onMouseMove, false);
 		element.removeEventListener('mouseup', onMouseUp, false);
+		element.removeEventListener('wheel', onMouseWheel, false);
 		// Touch events
-		element.addEventListener('touchstart', onTouchStart, false);
-		element.addEventListener('touchmove', onTouchMove, false);
-		element.addEventListener('touchend', onTouchEnd, false);
+		element.removeEventListener('touchstart', onTouchStart, false);
+		element.removeEventListener('touchmove', onTouchMove, false);
+		element.removeEventListener('touchend', onTouchEnd, false);
 	};
 	
 	create.call(this);
