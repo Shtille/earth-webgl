@@ -153,18 +153,17 @@ function Camera(options) {
 			-Math.sin(theta) * Math.cos(alpha),
 			 Math.cos(theta),
 			-Math.sin(theta) * Math.sin(alpha));
-		var eye = vec3.fromValues(
+		vec3.set(position,
 			target[0] - f[0] * distance,
 			target[1] - f[1] * distance,
 			target[2] - f[2] * distance);
-		var sde = vec3.dot(s, eye);
-		var ude = vec3.dot(u, eye);
-		var fde = vec3.dot(f, eye);
-		viewMatrix = mat4.fromValues(
+		var sde = vec3.dot(s, position);
+		var ude = vec3.dot(u, position);
+		var fde = vec3.dot(f, position);
+		mat4.set(viewMatrix,
 			s[0], u[0], -f[0], 0,
 			s[1], u[1], -f[1], 0,
 			s[2], u[2], -f[2], 0,
 			-sde, -ude,   fde, 1);
-		position = eye;
 	};
 }
