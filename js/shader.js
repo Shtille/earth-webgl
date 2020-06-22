@@ -3,8 +3,11 @@
  * Distributed under the MIT License (license terms are at http://opensource.org/licenses/MIT).
  */
 
-'use strict';
-
+/**
+ * Defines shader class.
+ *
+ * @param {WebGLRenderingContext} gl  Rendering context.
+ */
 function Shader(gl) {
 	var gl = gl;
 	var uniformLocations = new Object();
@@ -132,3 +135,5 @@ function Shader(gl) {
 		return location;
 	};
 }
+
+export { Shader };

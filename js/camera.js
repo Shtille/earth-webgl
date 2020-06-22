@@ -5,8 +5,6 @@
  * Module defines class for camera.
  */
 
-'use strict';
-
 /**
  * Defines camera around the target class.
  *
@@ -167,3 +165,5 @@ function Camera(options) {
 			-sde, -ude,   fde, 1);
 	};
 }
+
+export { Camera };

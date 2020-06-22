@@ -3,7 +3,7 @@
  * Distributed under the MIT License (license terms are at http://opensource.org/licenses/MIT).
  */
 
-'use strict';
+import { Mesh } from './mesh.js';
 
 /**
  * Defines generated mesh class.
@@ -229,3 +229,5 @@ function GeneratedMesh(gl, vertexFormat) {
 		}
 	};
 }
+
+export { GeneratedMesh };

@@ -3,7 +3,7 @@
  * Distributed under the MIT License (license terms are at http://opensource.org/licenses/MIT).
  */
 
-'use strict';
+import { VertexFormat } from './vertex-format.js';
 
 /**
  * Defines mesh class.
@@ -166,3 +166,5 @@ function Mesh(gl, vertexFormat) {
 		});
 	};
 }
+
+export { Mesh };

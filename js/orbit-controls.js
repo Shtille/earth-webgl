@@ -5,7 +5,7 @@
  * Module defines class for orbit controls.
  */
 
-'use strict';
+import { Camera } from './camera.js';
 
 /**
  * Defines orbit controls class.
@@ -191,3 +191,5 @@ function OrbitControls(camera, element) {
 	
 	create.call(this);
 }
+
+export { OrbitControls };

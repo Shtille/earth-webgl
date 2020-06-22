@@ -5,8 +5,8 @@
  * Module describes Earth constants.
  */
 
-const kEarthRadius = 6371000; // 6371 km
+export const kEarthRadius = 6371000; // 6371 km
 const kEarthAtmosphereHeight = 100000; // 100 km
 const kEarthCloudsHeight = 12000; // 12 km
-const kEarthAtmosphereRadius = kEarthRadius + kEarthAtmosphereHeight;
-const kEarthCloudsRadius = kEarthRadius + kEarthCloudsHeight;
+export const kEarthAtmosphereRadius = kEarthRadius + kEarthAtmosphereHeight;
+export const kEarthCloudsRadius = kEarthRadius + kEarthCloudsHeight;

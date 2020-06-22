@@ -3,6 +3,8 @@
  * Distributed under the MIT License (license terms are at http://opensource.org/licenses/MIT).
  */
 
+import { Application } from './app.js';
+
 function fitCanvasToWindow() {
 	const canvas = document.getElementById("glCanvas");
 	canvas.width = window.innerWidth;

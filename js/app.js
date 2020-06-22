@@ -3,8 +3,21 @@
  * Distributed under the MIT License (license terms are at http://opensource.org/licenses/MIT).
  */
 
-'use strict';
+import { kEarthRadius, kEarthAtmosphereRadius, kEarthCloudsRadius } from './constants.js';
+import { Texture } from './texture.js';
+import { Shader } from './shader.js';
+import { Camera } from './camera.js';
+import { OrbitControls } from './orbit-controls.js';
+import { VertexAttribute } from './vertex-attribute.js';
+import { VertexFormat } from './vertex-format.js';
+import { GeneratedMesh } from './generated-mesh.js';
+import { ResourceRequirement } from './resource-requirement.js';
 
+/**
+ * Defines application class.
+ *
+ * @param {WebGLRenderingContext} gl  Rendering context.
+ */
 function Application(gl) {
 	var gl = gl;
 
@@ -330,3 +343,5 @@ function Application(gl) {
 		needUpdateProjectionMatrix = true;
 	};
 }
+
+export { Application };

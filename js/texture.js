@@ -3,7 +3,7 @@
  * Distributed under the MIT License (license terms are at http://opensource.org/licenses/MIT).
  */
 
-'use strict';
+import { isPowerOfTwo } from './extend-math.js';
 
 /**
  * Defines texture class.
@@ -87,7 +87,7 @@ function Texture(gl) {
 			// WebGL1 has different requirements for power of 2 images
 			// vs non power of 2 images so check if the image is a
 			// power of 2 in both dimensions.
-			if (Math.isPowerOfTwo(image.width) && Math.isPowerOfTwo(image.height)) {
+			if (isPowerOfTwo(image.width) && isPowerOfTwo(image.height)) {
 				// Yes, it's a power of 2. Generate mips.
 				gl.generateMipmap(gl.TEXTURE_2D);
 			} else {
@@ -108,3 +108,5 @@ function Texture(gl) {
 		image.src = url;
 	};
 }
+
+export { Texture };
