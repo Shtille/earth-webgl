@@ -29,6 +29,7 @@ function Camera(options) {
 	var context = options.context;
 
 	var position = vec3.create();
+	var forward = vec3.create();
 	var viewMatrix = mat4.create();
 	var alpha = 0.0;
 	var theta = 0.0;
@@ -114,6 +115,12 @@ function Camera(options) {
 		return position;
 	};
 	/**
+	 * Returns camera forward vector.
+	 */
+	this.getForward = function() {
+		return forward;
+	};
+	/**
 	 * Returns view matrix.
 	 */
 	this.getViewMatrix = function() {
@@ -139,7 +146,7 @@ function Camera(options) {
 		//      |	u[0]   u[1]   u[2]  -u.e  |
 		//  V = |  -f[0]  -f[1]  -f[2]   f.e  |
 		//      |	 0	    0      0      1   |
-		var f = vec3.fromValues(
+		vec3.set(forward,
 			-Math.cos(theta) * Math.cos(alpha),
 			-Math.sin(theta),
 			-Math.cos(theta) * Math.sin(alpha));
@@ -152,16 +159,16 @@ function Camera(options) {
 			 Math.cos(theta),
 			-Math.sin(theta) * Math.sin(alpha));
 		vec3.set(position,
-			target[0] - f[0] * distance,
-			target[1] - f[1] * distance,
-			target[2] - f[2] * distance);
+			target[0] - forward[0] * distance,
+			target[1] - forward[1] * distance,
+			target[2] - forward[2] * distance);
 		var sde = vec3.dot(s, position);
 		var ude = vec3.dot(u, position);
-		var fde = vec3.dot(f, position);
+		var fde = vec3.dot(forward, position);
 		mat4.set(viewMatrix,
-			s[0], u[0], -f[0], 0,
-			s[1], u[1], -f[1], 0,
-			s[2], u[2], -f[2], 0,
+			s[0], u[0], -forward[0], 0,
+			s[1], u[1], -forward[1], 0,
+			s[2], u[2], -forward[2], 0,
 			-sde, -ude,   fde, 1);
 	};
 }
