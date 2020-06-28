@@ -29,14 +29,17 @@ function Texture(gl) {
 	 * Destroys texture.
 	 */
 	this.destroy = function() {
-		if (this.id)
+		if (this.id) {
 			gl.deleteTexture(this.id);
+			this.id = null;
+		}
 		gl = null;
 		if (image) {
 			// Cancel loading
 			image.src = "";
 			image.onload = null;
 			image.onerror = null;
+			image = null;
 		}
 	};
 
@@ -98,13 +101,13 @@ function Texture(gl) {
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 			}
 			if (successCallback)
-				successCallback.call(context);
+				successCallback.call(context, this);
 		}.bind(this);
 		image.onerror = function(message) {
 			var errorMessage = 'Failed to load the texture: ' + message + '<br>';
 			if (errorCallback)
-				errorCallback.call(context, errorMessage);
-		};
+				errorCallback.call(context, errorMessage, this);
+		}.bind(this);
 		image.src = url;
 	};
 }

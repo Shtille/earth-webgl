@@ -26,8 +26,6 @@ function PlanetMapTile(map, node, albedoTexture) {
 	 * Destructor.
 	 */
 	this.destroy = function() {
-		albedoTexture.destroy();
-
 		map = null;
 		node = null;
 		albedoTexture = null;

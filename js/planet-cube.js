@@ -5,6 +5,7 @@
 
 import { LinkedList } from './linked-list.js';
 import { PlanetTileMesh } from './planet-tile-mesh.js';
+import { PlanetMap } from './planet-map.js';
 import { PlanetTree } from './planet-tree.js';
 import { PlanetRequest, PlanetRequestType } from './planet-request.js';
 
@@ -72,6 +73,8 @@ function PlanetCube(options) {
 		tileMesh = new PlanetTileMesh(gl, vertexFormat, gridSize);
 		tileMesh.create();
 		tileMesh.makeRenderable();
+		map = new PlanetMap(gl);
+		map.create();
 		// For future uses
 		mat4.fromTranslation(modelMatrix, position);
 	};
@@ -89,6 +92,8 @@ function PlanetCube(options) {
 		faces = null;
 		tileMesh.destroy();
 		tileMesh = null;
+		map.destroy();
+		map = null;
 	};
 
 	/**
@@ -214,6 +219,15 @@ function PlanetCube(options) {
 	 */
 	this.getShader = function() {
 		return shader;
+	};
+
+	/**
+	 * Gets map.
+	 *
+	 * @return {PlanetMap} The map.
+	 */
+	this.getMap = function() {
+		return map;
 	};
 
 	/**

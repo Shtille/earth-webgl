@@ -53,9 +53,11 @@ function PlanetTreeNode(tree) {
 	 */
 	this.destroy = function() {
 		var cube = this.tree.getCube();
+		var map = cube.getMap();
 		cube.unrequest(this);
 		if (this.parent)
 			this.parent.children[this.parentSlot] = null;
+		map.deleteNode(this);
 		this.destroyMapTile();
 		this.destroyRenderable();
 		for (var i = 0; i < 4; ++i)
