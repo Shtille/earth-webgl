@@ -8,10 +8,12 @@ import { Texture } from './texture.js';
 import { Shader } from './shader.js';
 import { Camera } from './camera.js';
 import { OrbitControls } from './orbit-controls.js';
+import { Frustum } from './frustum.js';
 import { VertexAttribute } from './vertex-attribute.js';
 import { VertexFormat } from './vertex-format.js';
 import { GeneratedMesh } from './generated-mesh.js';
 import { ResourceRequirement } from './resource-requirement.js';
+import { PlanetCube } from './planet-cube.js';
 
 /**
  * Defines application class.
@@ -20,6 +22,8 @@ import { ResourceRequirement } from './resource-requirement.js';
  */
 function Application(gl) {
 	var gl = gl;
+
+	const useQuadTree = true;
 
 	const kCameraDistance = kEarthRadius * 5.0;
 	const kMaxDistance = kEarthRadius * 10.0;
@@ -40,12 +44,15 @@ function Application(gl) {
 	var groundShader = new Shader(gl);
 	var cloudsShader = new Shader(gl);
 	var skyShader = new Shader(gl);
+	var planetTileShader = new Shader(gl);
 	var groundTexture = new Texture(gl);
 	var cloudsTexture = new Texture(gl);
 	var vertexFormat = null;
 	var sphereMesh = null;
 	var camera = null;
 	var orbitControls = null;
+	var frustum = null;
+	var planetCube = null;
 	var projectionMatrix = mat4.create();
 	var viewMatrix = mat4.create();
 	var projectionViewMatrix = mat4.create();
@@ -182,6 +189,13 @@ function Application(gl) {
 		gl.uniform1f(shader.getUniformLocation("u_g"), g);
 		gl.uniform1f(shader.getUniformLocation("u_g2"), g * g);
 	};
+	var onPlanetTileShaderLoaded = function(shader) {
+		requirements.remove();
+		gl.useProgram(shader.program);
+
+		gl.uniform1f(shader.getUniformLocation("u_planet_radius"), kInnerRadius);
+		gl.uniform1i(shader.getUniformLocation("u_texture"), 0);
+	};
 	var renderGround = function() {
 		gl.useProgram(groundShader.program);
 		gl.uniformMatrix4fv(
@@ -241,32 +255,49 @@ function Application(gl) {
 
 		showLoading();
 
-		// Vertex format
-		var namedAttributes = ["a_position", "a_normal", "a_texcoord"];
-		var attributes = [
-			new VertexAttribute(3, gl.FLOAT, "position"),
-			new VertexAttribute(3, gl.FLOAT, "normal"),
-			new VertexAttribute(2, gl.FLOAT, "texcoord")
-		];
-		vertexFormat = new VertexFormat(gl, attributes);
+		if (useQuadTree) {
+			
+			// Vertex format
+			var namedAttributes = ["a_position"];
+			var attributes = [
+				new VertexAttribute(3, gl.FLOAT, "position")
+			];
+			vertexFormat = new VertexFormat(gl, attributes);
 
-		// Load shaders
-		groundShader.loadFromFile("shaders/ground-vert.glsl", "shaders/ground-frag.glsl",
-			namedAttributes, onGroundShaderLoaded, onError, this);
-		cloudsShader.loadFromFile("shaders/clouds-vert.glsl", "shaders/clouds-frag.glsl",
-			namedAttributes, onCloudsShaderLoaded, onError, this);
-		skyShader.loadFromFile("shaders/sky-vert.glsl", "shaders/sky-frag.glsl",
-			namedAttributes, onSkyShaderLoaded, onError, this);
+			// Load shaders
+			planetTileShader.loadFromFile("shaders/planet-tile-vert.glsl", "shaders/planet-tile-frag.glsl",
+				namedAttributes, onPlanetTileShaderLoaded, onError, this);
 
-		// Load textures
-		groundTexture.loadFromFile("textures/earth.jpg", onTextureLoaded, onError, this);
-		cloudsTexture.loadFromFile("textures/clouds.jpg", onTextureLoaded, onError, this, true);
+		} else {
+			
+			// Vertex format
+			var namedAttributes = ["a_position", "a_normal", "a_texcoord"];
+			var attributes = [
+				new VertexAttribute(3, gl.FLOAT, "position"),
+				new VertexAttribute(3, gl.FLOAT, "normal"),
+				new VertexAttribute(2, gl.FLOAT, "texcoord")
+			];
+			vertexFormat = new VertexFormat(gl, attributes);
 
-		// Create sphere mesh
-		// Push mesh generation in the next event cycle 
-		// just to make window show loading spinner
-		sphereMesh = new GeneratedMesh(gl, vertexFormat);
-		window.setTimeout(generateMesh.bind(this));
+			// Load shaders
+			groundShader.loadFromFile("shaders/ground-vert.glsl", "shaders/ground-frag.glsl",
+				namedAttributes, onGroundShaderLoaded, onError, this);
+			cloudsShader.loadFromFile("shaders/clouds-vert.glsl", "shaders/clouds-frag.glsl",
+				namedAttributes, onCloudsShaderLoaded, onError, this);
+			skyShader.loadFromFile("shaders/sky-vert.glsl", "shaders/sky-frag.glsl",
+				namedAttributes, onSkyShaderLoaded, onError, this);
+
+			// Load textures
+			groundTexture.loadFromFile("textures/earth.jpg", onTextureLoaded, onError, this);
+			cloudsTexture.loadFromFile("textures/clouds.jpg", onTextureLoaded, onError, this, true);
+
+			// Create sphere mesh
+			// Push mesh generation in the next event cycle 
+			// just to make window show loading spinner
+			sphereMesh = new GeneratedMesh(gl, vertexFormat);
+			window.setTimeout(generateMesh.bind(this));
+
+		}
 
 		// Create camera
 		camera = new Camera({
@@ -283,47 +314,88 @@ function Application(gl) {
 		// Create orbit controls
 		orbitControls = new OrbitControls(camera, gl.canvas);
 
-		// Create constant model matrices
-		mat4.fromScaling(groundModelMatrix, [kInnerRadius, kInnerRadius, kInnerRadius]);
+		// Create frustum
+		frustum = new Frustum();
 
-		// Create resource requirements
-		requirements = new ResourceRequirement([
-			"groundShader",
-			"cloudsShader",
-			"skyShader",
-			"groundTexture",
-			"cloudsTexture",
-			"sphereMesh",
-		], onRequirementsPassed, this);
+		if (useQuadTree) {
+
+			// Create planet cube
+			planetCube = new PlanetCube({
+				gl: gl,
+				vertexFormat: vertexFormat,
+				shader: planetTileShader,
+				radius: kInnerRadius,
+				position: kEarthPosition,
+				camera: camera,
+				frustum: frustum
+			});
+
+			// Create resource requirements
+			requirements = new ResourceRequirement([
+				"planetTileShader",
+			], onRequirementsPassed, this);
+
+		} else {
+
+			// Create constant model matrices
+			mat4.fromScaling(groundModelMatrix, [kInnerRadius, kInnerRadius, kInnerRadius]);
+
+			// Create resource requirements
+			requirements = new ResourceRequirement([
+				"groundShader",
+				"cloudsShader",
+				"skyShader",
+				"groundTexture",
+				"cloudsTexture",
+				"sphereMesh",
+			], onRequirementsPassed, this);
+
+		}
 	};
 	this.unload = function() {
-		groundShader.destroy();
-		cloudsShader.destroy();
-		skyShader.destroy();
-		groundTexture.destroy();
-		cloudsTexture.destroy();
-		sphereMesh.destroy();
+		if (useQuadTree) {
+			planetCube.destroy();
+			planetTileShader.destroy();
+		} else {
+			groundShader.destroy();
+			cloudsShader.destroy();
+			skyShader.destroy();
+			groundTexture.destroy();
+			cloudsTexture.destroy();
+			sphereMesh.destroy();
+		}
 		orbitControls.destroy();
 	};
 	this.update = function(seconds) {
+		if (!ready)
+			return;
+
 		camera.update();
 
 		updateProjectionMatrix();
 		updateViewMatrix();
 		mat4.multiply(projectionViewMatrix, projectionMatrix, viewMatrix);
+		frustum.set(projectionViewMatrix);
 
-		// Update model matrices
-		rotationAngle += 0.005 * seconds;
-		mat4.fromYRotation(rotationMatrix, rotationAngle);
+		if (useQuadTree) {
 
-		mat4.fromScaling(cloudsModelMatrix, [kCloudsRadius, kCloudsRadius, kCloudsRadius]);
-		mat4.multiply(cloudsModelMatrix, cloudsModelMatrix, rotationMatrix);
+			planetCube.update();
+			
+		} else {
+			
+			// Update model matrices
+			rotationAngle += 0.005 * seconds;
+			mat4.fromYRotation(rotationMatrix, rotationAngle);
 
-		mat4.fromScaling(skyModelMatrix, [kOuterRadius, kOuterRadius, kOuterRadius]);
-		mat4.multiply(skyModelMatrix, skyModelMatrix, rotationMatrix);
+			mat4.fromScaling(cloudsModelMatrix, [kCloudsRadius, kCloudsRadius, kCloudsRadius]);
+			mat4.multiply(cloudsModelMatrix, cloudsModelMatrix, rotationMatrix);
 
-		if (ready)
+			mat4.fromScaling(skyModelMatrix, [kOuterRadius, kOuterRadius, kOuterRadius]);
+			mat4.multiply(skyModelMatrix, skyModelMatrix, rotationMatrix);
+
 			bindShaderVariables();
+
+		}
 	};
 	this.render = function() {
 		// Clear context
@@ -332,9 +404,17 @@ function Application(gl) {
 		if (!ready)
 			return;
 
-		renderGround();
-		renderSky();
-		renderClouds();
+		if (useQuadTree) {
+
+			planetCube.render();
+
+		} else {
+
+			renderGround();
+			renderSky();
+			renderClouds();
+
+		}
 	};
 	this.onResize = function(newWidth, newHeight) {
 		width = newWidth;

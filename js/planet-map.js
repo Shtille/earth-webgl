@@ -3,6 +3,7 @@
  * Distributed under the MIT License (license terms are at http://opensource.org/licenses/MIT).
  */
 
+import { Texture } from './texture.js';
 import { PlanetMapTile } from './planet-map-tile.js';
 import { PlanetMapProvider } from './planet-map-provider.js';
 

@@ -19,7 +19,7 @@ function PlanetTileMesh(gl, vertexFormat, gridSize) {
 	// Call base class constructor
 	GeneratedMesh.call(this, gl, vertexFormat);
 
-	const gridSize = gridSize;
+	var gridSize = gridSize;
 
 	/**
 	 * Creates mesh.

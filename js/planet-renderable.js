@@ -290,7 +290,7 @@ function PlanetRenderable(node, mapTile) {
 		var frustum = cube.getFrustum();
 
 		// Bounding box clipping.
-		isClipped_ = frustum.intersectsBoundingBox(boundingBox);
+		isClipped_ = false;//frustum.intersectsBoundingBox(boundingBox);
 
 		// Spherical distance map clipping.
 		var point_dot_n = vec3.dot(params.cameraPosition, surfaceNormal);
@@ -306,7 +306,7 @@ function PlanetRenderable(node, mapTile) {
 			// Always invisible
 			isFarAway_ = true;
 		}
-		else if (cos_camera_angle > cos_sector_angle_)
+		else if (cos_camera_angle > cosSectorAngle)
 		{
 			// Always visible
 			isFarAway_ = false;

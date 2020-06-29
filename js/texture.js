@@ -108,6 +108,10 @@ function Texture(gl) {
 			if (errorCallback)
 				errorCallback.call(context, errorMessage, this);
 		}.bind(this);
+		// Set CORS if needed
+		if ((new URL(url, window.location.href)).origin !== window.location.origin) {
+			image.crossOrigin = "";
+		}
 		image.src = url;
 	};
 }

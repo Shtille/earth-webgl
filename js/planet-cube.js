@@ -50,6 +50,8 @@ function PlanetCube(options) {
 
 	var modelMatrix = mat4.create();
 	var modelViewProjectionMatrix = mat4.create();
+	var faceTransform = mat3.create();
+	var lastFaceTransformFace = -1; // last face value used to call face transform
 
 	var inlineRequests = new LinkedList();
 	var renderRequests = new LinkedList();
@@ -63,8 +65,9 @@ function PlanetCube(options) {
 
 	/**
 	 * Constructor.
+	 * @private
 	 */
-	this.create = function() {
+	var create = function() {
 		faces = new Array(6);
 		for (var i = 0; i < 6; i++) {
 			faces[i] = new PlanetTree(this, i);
@@ -142,7 +145,8 @@ function PlanetCube(options) {
 		mat4.multiply(modelViewProjectionMatrix, projection_view_matrix, modelMatrix);
 
 		gl.useProgram(shader.program);
-		gl.uniformMatrix4fv(shader.getUniformLocation("u_projection_view_model"), 
+		gl.uniformMatrix4fv(shader.getUniformLocation("u_projection_view_model"),
+			false,
 			modelViewProjectionMatrix);
 
 		for (var i = 0; i < 6; i++) {
@@ -231,39 +235,67 @@ function PlanetCube(options) {
 	};
 
 	/**
+	 * Gets WebGL context.
+	 *
+	 * @return {WebGLRenderingContext} The WebGL context.
+	 */
+	this.getGL = function() {
+		return gl;
+	};
+
+	/**
 	 * Gets face transform for a given face.
 	 *
 	 * @param {Number} face The face (from 0 to 5).
 	 * @return {mat3} The face transform matrix.
 	 */
 	this.getFaceTransform = function(face) {
-		switch (face) {
-		case 0:
-			return mat3.fromValues(0, 0, 1,
-								   0, 1, 0,
-								   1, 0, 0);
-		case 1:
-			return mat3.fromValues(0, 0,-1,
-								   0, 1, 0,
-								  -1, 0, 0);
-		case 2:
-			return mat3.fromValues(1, 0, 0,
-								   0, 0, 1,
-								   0, 1, 0);
-		case 3:
-			return mat3.fromValues(1, 0, 0,
-								   0, 0,-1,
-								   0,-1, 0);
-		case 4:
-			return mat3.fromValues(-1, 0, 0,
-								    0, 1, 0,
-								    0, 0, 1);
-		case 5:
-			return mat3.fromValues(1, 0, 0,
-								   0, 1, 0,
-								   0, 0,-1);
-		default:
-			alert("Wrong face");
+		if (lastFaceTransformFace === face) {
+			return faceTransform;
+		} else {
+			lastFaceTransformFace = face;
+			switch (face) {
+			case 0:
+				mat3.set(faceTransform,
+					 0, 0, 1,
+					 0, 1, 0,
+					 1, 0, 0);
+				break;
+			case 1:
+				mat3.set(faceTransform,
+					 0, 0,-1,
+					 0, 1, 0,
+					-1, 0, 0);
+				break;
+			case 2:
+				mat3.set(faceTransform,
+					 1, 0, 0,
+					 0, 0, 1,
+					 0, 1, 0);
+				break;
+			case 3:
+				mat3.set(faceTransform,
+					 1, 0, 0,
+					 0, 0,-1,
+					 0,-1, 0);
+				break;
+			case 4:
+				mat3.set(faceTransform,
+					-1, 0, 0,
+					 0, 1, 0,
+					 0, 0, 1);
+				break;
+			case 5:
+				mat3.set(faceTransform,
+					 1, 0, 0,
+					 0, 1, 0,
+					 0, 0,-1);
+				break;
+			default:
+				alert("Wrong face");
+				break;
+			}
+			return faceTransform;
 		}
 	};
 
@@ -379,7 +411,7 @@ function PlanetCube(options) {
 		{
 			// Request a map tile for this node's LOD level.
 			node.requestMapTile = true;
-			request.call(this, node, PlanetRequestType.REQUEST_MAPTILE, true);
+			this.request(node, PlanetRequestType.REQUEST_MAPTILE, true);
 		}
 		return true;
 	};
@@ -396,7 +428,7 @@ function PlanetCube(options) {
 			var child = node.children[i];
 			if (child && child.renderable && child.renderable.getMapTile() == mapTile) {
 				child.requestRenderable = true;
-				request.call(this, child, PlanetRequestType.REQUEST_RENDERABLE, true);
+				this.request(child, PlanetRequestType.REQUEST_RENDERABLE, true);
 
 				// Recurse
 				refreshMapTile.call(this, child, mapTile);
@@ -414,7 +446,7 @@ function PlanetCube(options) {
 		// See if the map tile object for this node is ready yet.
 		if (!node.prepareMapTile(map)) {
 			// Needs more work.
-			request.call(this, node, PlanetRequestType.REQUEST_MAPTILE, true);
+			this.request(node, PlanetRequestType.REQUEST_MAPTILE, true);
 			return false;
 		} else {
 			// Assemble a map tile object for this node.
@@ -423,7 +455,7 @@ function PlanetCube(options) {
 
 			// Request a new renderable to match.
 			node.requestRenderable = true;
-			request.call(this, node, PlanetRequestType.REQUEST_RENDERABLE, true);
+			this.request(node, PlanetRequestType.REQUEST_RENDERABLE, true);
 
 			// See if any child renderables use the old maptile.
 			if (node.renderable) {
@@ -476,9 +508,12 @@ function PlanetCube(options) {
 	 * @param {LinkedList}     requestQueue      The queue.
 	 */
 	var handleRequests = function(requestQueue) {
-		while (!requestQueue.empty()) {
+		// Limit update per frame
+		var size = requestQueue.size();
+		while (size != 0) {
 			var request = requestQueue.popFront();
 			handlers[request.type].call(this, request.node);
+			size--;
 		}
 	};
 
@@ -498,13 +533,15 @@ function PlanetCube(options) {
 				if (node.renderable.isFarAway() ||
 					(node.renderable.isInLODRange() && node.renderable.isInMIPRange())) {
 					node.requestMerge = true;
-					request.call(this, node, PlanetRequestType.REQUEST_MERGE, true);
+					this.request(node, PlanetRequestType.REQUEST_MERGE, true);
 				} else {
 					node.lastOpened = frameCounter;
 				}
 			}
 		});
 	};
+
+	create.call(this);
 }
 
 export { PlanetCube };

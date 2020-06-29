@@ -156,6 +156,7 @@ function PlanetTreeNode(tree) {
 	 */
 	var renderSelf = function() {
 		var cube = this.tree.getCube();
+		var gl = cube.getGL();
 
 		// if (owner_->cube_->preprocess_)
 		// 	return;
@@ -167,7 +168,7 @@ function PlanetTreeNode(tree) {
 		gl.uniform4fv(shader.getUniformLocation("u_stuv_scale"), this.renderable.getStuvScale());
 		gl.uniform4fv(shader.getUniformLocation("u_stuv_position"), this.renderable.getStuvPosition());
 		gl.uniform1f(shader.getUniformLocation("u_skirt_height"), this.renderable.getDistance());
-		gl.uniformMatrix3fv(shader.getUniformLocation("u_face_transform"), face_transform);
+		gl.uniformMatrix3fv(shader.getUniformLocation("u_face_transform"), false, face_transform);
 
 		// Fragment shader
 		gl.uniform4fv(shader.getUniformLocation("u_color"), this.renderable.getColor());

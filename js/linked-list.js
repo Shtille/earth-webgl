@@ -70,10 +70,19 @@ function LinkedList() {
 	/**
 	 * Checks if list empty.
 	 *
-	 * @return True if empty and false otherwise.
+	 * @return {Boolean} True if empty and false otherwise.
 	 */
 	this.empty = function() {
 		return length == 0;
+	};
+
+	/**
+	 * Returns list size.
+	 *
+	 * @return {Number} List size.
+	 */
+	this.size = function() {
+		return length;
 	};
 
 	/**
@@ -115,6 +124,7 @@ function LinkedList() {
 		var node = head;
 		if (node) {
 			head = node.next;
+			node.next = null;
 			if (head)
 				head.prev = null;
 			if (tail == node)
@@ -134,6 +144,7 @@ function LinkedList() {
 		var node = tail;
 		if (node) {
 			tail = node.prev;
+			node.prev = null;
 			if (tail)
 				tail.next = null;
 			if (head == node)

@@ -3,6 +3,8 @@
  * Distributed under the MIT License (license terms are at http://opensource.org/licenses/MIT).
  */
 
+import { Plane } from './plane.js';
+
 /**
  * Defines bounding box class.
  */
