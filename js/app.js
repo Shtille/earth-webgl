@@ -25,6 +25,7 @@ function Application(gl) {
 
 	const useQuadTree = true;
 
+	const fieldOfView = 45 * Math.PI / 180;   // field of view in Y direction in radians
 	const kCameraDistance = kEarthRadius * 5.0;
 	const kMaxDistance = kEarthRadius * 10.0;
 	const kMinDistance = kEarthRadius * 1.5;
@@ -92,7 +93,6 @@ function Application(gl) {
 		if (needUpdateProjectionMatrix) {
 			needUpdateProjectionMatrix = false;
 
-			const fieldOfView = 45 * Math.PI / 180;   // in radians
 			const aspect = width / height;
 			const ranges = camera.getZNearZFar();
 			mat4.perspective(projectionMatrix, fieldOfView, aspect, ranges.zNear, ranges.zFar);
@@ -329,6 +329,7 @@ function Application(gl) {
 				camera: camera,
 				frustum: frustum
 			});
+			planetCube.setParameters(fieldOfView, height);
 
 			// Create resource requirements
 			requirements = new ResourceRequirement([

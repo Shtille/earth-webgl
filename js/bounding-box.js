@@ -9,8 +9,8 @@ import { Plane } from './plane.js';
  * Defines bounding box class.
  */
 function BoundingBox() {
-	var _min = vec3.create();
-	var _max = vec3.create();
+	this.min = vec3.create();
+	this.max = vec3.create();
 
 	/**
 	 * Sets the bounding box to bounds.
@@ -19,8 +19,8 @@ function BoundingBox() {
 	 * @param {vec3} max The maximum vector.
 	 */
 	this.set = function(min, max) {
-		vec3.copy(_min, min);
-		vec3.copy(_max, max);
+		vec3.copy(this.min, min);
+		vec3.copy(this.max, max);
 	};
 
 	/**
@@ -48,15 +48,15 @@ function BoundingBox() {
 	this.intersectsPlane = function(plane) {
 		// Calculate the distance from the center of the box to the plane.
 		var center = vec3.fromValues(
-			(_min[0] + _max[0]) * 0.5, 
-			(_min[1] + _max[1]) * 0.5, 
-			(_min[2] + _max[2]) * 0.5);
-		var distance = plane.distance(center);
+			(this.min[0] + this.max[0]) * 0.5, 
+			(this.min[1] + this.max[1]) * 0.5, 
+			(this.min[2] + this.max[2]) * 0.5);
+		var distance = plane.pointDistance(center);
 
 		// Get the extents of the box from its center along each axis.
-		var extentX = (_max[0] - _min[0]) * 0.5;
-		var extentY = (_max[1] - _min[1]) * 0.5;
-		var extentZ = (_max[2] - _min[2]) * 0.5;
+		var extentX = (this.max[0] - this.min[0]) * 0.5;
+		var extentY = (this.max[1] - this.min[1]) * 0.5;
+		var extentZ = (this.max[2] - this.min[2]) * 0.5;
 
 		var planeNormal = plane.getNormal();
 		if (Math.abs(distance) <= (Math.abs(extentX * planeNormal[0]) + 

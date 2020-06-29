@@ -290,7 +290,7 @@ function PlanetRenderable(node, mapTile) {
 		var frustum = cube.getFrustum();
 
 		// Bounding box clipping.
-		isClipped_ = false;//frustum.intersectsBoundingBox(boundingBox);
+		isClipped_ = !frustum.intersectsBoundingBox(boundingBox);
 
 		// Spherical distance map clipping.
 		var point_dot_n = vec3.dot(params.cameraPosition, surfaceNormal);

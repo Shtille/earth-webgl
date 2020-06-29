@@ -302,9 +302,8 @@ function PlanetTreeNode(tree) {
 
 	/**
 	 * Propagates LOD distances.
-	 * @private
 	 */
-	var propagateLodDistances = function() {
+	this.propagateLodDistances = function() {
 		if (this.renderable) {
 			var max_child_distance = 0.0;
 			// Get maximum LOD distance of all children.
@@ -321,7 +320,7 @@ function PlanetTreeNode(tree) {
 		}
 		// Propagate changes to parent.
 		if (this.parent)
-			this.parent.propagateLodDistances.call(this);
+			this.parent.propagateLodDistances();
 	};
 
 	/**
@@ -366,7 +365,7 @@ function PlanetTreeNode(tree) {
 			this.pageOut = false;
 		this.renderable = new PlanetRenderable(this, mapTile);
 		this.renderable.create();
-		propagateLodDistances.call(this);
+		this.propagateLodDistances();
 	};
 
 	/**
@@ -376,7 +375,7 @@ function PlanetTreeNode(tree) {
 		if (this.renderable)
 			this.renderable.destroy();
 		this.renderable = null;
-		propagateLodDistances.call(this);
+		this.propagateLodDistances();
 	};
 }
 

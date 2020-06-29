@@ -7,6 +7,7 @@ import { LinkedList } from './linked-list.js';
 import { PlanetTileMesh } from './planet-tile-mesh.js';
 import { PlanetMap } from './planet-map.js';
 import { PlanetTree } from './planet-tree.js';
+import { PlanetTreeNode } from './planet-tree-node.js';
 import { PlanetRequest, PlanetRequestType } from './planet-request.js';
 
 /**
@@ -255,37 +256,37 @@ function PlanetCube(options) {
 		} else {
 			lastFaceTransformFace = face;
 			switch (face) {
-			case 0:
+			case 0: // +X
 				mat3.set(faceTransform,
 					 0, 0, 1,
 					 0, 1, 0,
 					 1, 0, 0);
 				break;
-			case 1:
+			case 1: // -X
 				mat3.set(faceTransform,
 					 0, 0,-1,
 					 0, 1, 0,
 					-1, 0, 0);
 				break;
-			case 2:
+			case 2: // +Y
 				mat3.set(faceTransform,
 					 1, 0, 0,
 					 0, 0, 1,
 					 0, 1, 0);
 				break;
-			case 3:
+			case 3: // -Y
 				mat3.set(faceTransform,
 					 1, 0, 0,
 					 0, 0,-1,
 					 0,-1, 0);
 				break;
-			case 4:
+			case 4: // +Z
 				mat3.set(faceTransform,
 					-1, 0, 0,
 					 0, 1, 0,
 					 0, 0, 1);
 				break;
-			case 5:
+			case 5: // -Z
 				mat3.set(faceTransform,
 					 1, 0, 0,
 					 0, 1, 0,
@@ -538,7 +539,7 @@ function PlanetCube(options) {
 					node.lastOpened = frameCounter;
 				}
 			}
-		});
+		}.bind(this));
 	};
 
 	create.call(this);

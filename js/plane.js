@@ -7,8 +7,8 @@
  * Defines plane class.
  */
 function Plane() {
-	var _normal = vec3.create();
-	var _distance = 0;
+	this.normal = vec3.create();
+	this.distance = 0;
 
 	/**
 	 * Returns normal.
@@ -16,7 +16,7 @@ function Plane() {
 	 * @return {vec3} The normal.
 	 */
 	this.getNormal = function() {
-		return _normal;
+		return this.normal;
 	};
 
 	/**
@@ -25,7 +25,7 @@ function Plane() {
 	 * @return {Number} The distance.
 	 */
 	this.getDistance = function() {
-		return _distance;
+		return this.distance;
 	};
 
 	/**
@@ -35,8 +35,8 @@ function Plane() {
 	 * @param {Number} distance The distance.
 	 */
 	this.set = function(normal, distance) {
-		vec3.copy(_normal, normal);
-		_distance = distance;
+		vec3.normalize(this.normal, normal);
+		this.distance = distance;
 	};
 
 	/**
@@ -48,10 +48,9 @@ function Plane() {
 	 * @param {Number} distance The distance.
 	 */
 	this.setComponents = function(normalX, normalY, normalZ, distance) {
-		_normal[0] = normalX;
-		_normal[1] = normalY;
-		_normal[2] = normalZ;
-		_distance = distance;
+		vec3.set(this.normal, normalX, normalY, normalZ);
+		this.distance = distance;
+		vec3.normalize(this.normal, this.normal);
 	};
 
 	/**
@@ -60,8 +59,11 @@ function Plane() {
 	 * @param {vec3} point The point.
 	 * @return {Number} The distance.
 	 */
-	this.distance = function(point) {
-		return _normal[0] * point[0] + _normal[1] * point[1] + _normal[2] * point[2] + _distance;
+	this.pointDistance = function(point) {
+		return this.normal[0] * point[0] + 
+			   this.normal[1] * point[1] + 
+			   this.normal[2] * point[2] + 
+			   this.distance;
 	};
 }
 
