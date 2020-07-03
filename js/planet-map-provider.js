@@ -8,6 +8,15 @@
  */
 function PlanetMapProvider() {}
 
+PlanetMapProvider.BITMAP_WIDTH = 256;
+PlanetMapProvider.BITMAP_HEIGHT = 256;
+PlanetMapProvider.MIN_LOD = 0;
+PlanetMapProvider.MAX_LOD = 22;
+PlanetMapProvider.MIN_LATITUDE = -85.05112878;
+PlanetMapProvider.MAX_LATITUDE =  85.05112878;
+PlanetMapProvider.MIN_LONGITUDE = -180.0;
+PlanetMapProvider.MAX_LONGITUDE =  180.0;
+
 /**
  * Gets URL.
  *

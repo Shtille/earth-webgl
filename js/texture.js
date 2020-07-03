@@ -110,6 +110,33 @@ function Texture(gl) {
 		}
 		image.src = url;
 	};
+
+	/**
+	 * Loads texture from image.
+	 *
+	 * @param {Image}    newImage         The image.
+	 * @param {Boolean}  grayscale        Flag if image grayscale. Optional.
+	 */
+	this.loadFromImage = function(newImage, grayscale) {
+		this.id = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, this.id);
+
+		if (grayscale)
+			setGrayscale();
+
+		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat,
+			srcFormat, srcType, newImage);
+
+		if (isPowerOfTwo(newImage.width) && isPowerOfTwo(newImage.height)) {
+			// Yes, it's a power of 2. Generate mips.
+			gl.generateMipmap(gl.TEXTURE_2D);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+		} else {
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		}
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	};
 }
 
 export { Texture };
