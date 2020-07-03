@@ -14,7 +14,7 @@ import { PlanetMapRenderer } from './planet-map-renderer.js';
  */
 function PlanetMapValue(gl) {
 	this.texture = new Texture(gl);
-	this.image = new Image();
+	this.imageData = new ImageData(256, 256);
 	this.ready = false;
 }
 
@@ -73,9 +73,9 @@ function PlanetMap(gl) {
 	var requestLoad = function(node) {
 		var value = map.get(node);
 		var face = node.tree.getFace();
-		if (renderer.request(value.image, face, node.lod, node.x, node.y)) {
+		if (renderer.request(value.imageData, face, node.lod, node.x, node.y)) {
 			// Image is ready
-			value.texture.loadFromImage(value.image);
+			value.texture.loadFromImageData(value.imageData);
 			value.ready = true;
 		}
 	};

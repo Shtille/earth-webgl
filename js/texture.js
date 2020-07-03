@@ -114,10 +114,10 @@ function Texture(gl) {
 	/**
 	 * Loads texture from image.
 	 *
-	 * @param {Image}    newImage         The image.
-	 * @param {Boolean}  grayscale        Flag if image grayscale. Optional.
+	 * @param {ImageData} imageData       The image data.
+	 * @param {Boolean}   grayscale       Flag if image grayscale. Optional.
 	 */
-	this.loadFromImage = function(newImage, grayscale) {
+	this.loadFromImageData = function(imageData, grayscale) {
 		this.id = gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D, this.id);
 
@@ -125,9 +125,9 @@ function Texture(gl) {
 			setGrayscale();
 
 		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat,
-			srcFormat, srcType, newImage);
+			srcFormat, srcType, imageData);
 
-		if (isPowerOfTwo(newImage.width) && isPowerOfTwo(newImage.height)) {
+		if (isPowerOfTwo(imageData.width) && isPowerOfTwo(imageData.height)) {
 			// Yes, it's a power of 2. Generate mips.
 			gl.generateMipmap(gl.TEXTURE_2D);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);

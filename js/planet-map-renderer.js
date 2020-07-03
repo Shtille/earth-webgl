@@ -22,9 +22,6 @@ function PlanetMapRenderer() {
 	var requestedKeys = null;
 	var bitmaps = null;
 
-	var dstCanvas = null;
-	var dstContext = null;
-	var dstImageData = null;
 	var srcCanvas = null;
 	var srcContext = null;
 
@@ -38,13 +35,6 @@ function PlanetMapRenderer() {
 	this.create = function() {
 		requestedKeys = new Set();
 		bitmaps = new Map();
-
-		// Create destination data
-		dstCanvas = document.createElement('canvas');
-		dstContext = dstCanvas.getContext('2d');
-		dstImageData = dstContext.createImageData(targetWidth, targetHeight);
-		dstCanvas.width = targetWidth;
-		dstCanvas.height = targetHeight;
 
 		// Create source data
 		srcCanvas = document.createElement('canvas');
@@ -268,6 +258,7 @@ function PlanetMapRenderer() {
 	 * Renders to the target surface.
 	 * @private
 	 *
+	 * @param {ImageData} imageData    The image data.
 	 * @param {Number} face            The cube face.
 	 * @param {Number} u_min           The minimum U coordinate.
 	 * @param {Number} v_min           The minimum V coordinate.
@@ -275,7 +266,7 @@ function PlanetMapRenderer() {
 	 * @param {Number} v_max           The maximum V coordinate.
 	 * @param {Number} level_of_detail The level of detail.
 	 */
-	var render = function(face, u_min, v_min, u_max, v_max, level_of_detail) {
+	var render = function(imageData, face, u_min, v_min, u_max, v_max, level_of_detail) {
 
 		// https://developer.mozilla.org/ru/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
 		// https://developer.mozilla.org/ru/docs/Web/API/CanvasRenderingContext2D/createImageData
@@ -289,7 +280,7 @@ function PlanetMapRenderer() {
 		var map_size = kBitmapWidth << level_of_detail;
 
 		// Create destination data
-		var dst = dstImageData.data;
+		var dst = imageData.data;
 
 		// Create source data
 		var srcImageData;
@@ -355,14 +346,14 @@ function PlanetMapRenderer() {
 	/**
 	 * Requests image for a node.
 	 *
-	 * @param {Image}  image     The image.
-	 * @param {Number} face      The cube face (0 to 5).
-	 * @param {Number} lod       The level of detail.
-	 * @param {Number} x         The tile X coordinate.
-	 * @param {Number} y         The tile Y coordinate.
+	 * @param {ImageData} imageData   The image data.
+	 * @param {Number}    face        The cube face (0 to 5).
+	 * @param {Number}    lod         The level of detail.
+	 * @param {Number}    x           The tile X coordinate.
+	 * @param {Number}    y           The tile Y coordinate.
 	 * @return {Boolean} True if image has been filled and false otherwise.
 	 */
-	this.request = function(image, face, lod, x, y) {
+	this.request = function(imageData, face, lod, x, y) {
 		// Request tiles to load and process loaded ones
 		prepare.call(this, face, lod, x, y);
 
@@ -378,11 +369,7 @@ function PlanetMapRenderer() {
 		var v_min = position_y;
 		var u_max = position_x + inv_scale;
 		var v_max = position_y + inv_scale;
-		render.call(this, face, u_min, v_min, u_max, v_max, prepareOutput.optimal_lod);
-
-		// Destination data has been filled, so lets assign it to the image
-		dstContext.putImageData(dstImageData, 0, 0);
-		image.src = dstCanvas.toDataURL();
+		render.call(this, imageData, face, u_min, v_min, u_max, v_max, prepareOutput.optimal_lod);
 
 		return true;
 	};
