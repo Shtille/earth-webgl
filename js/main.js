@@ -23,7 +23,7 @@ function fullscreen() {
  */
 var requestID = null;
 var app = null;
-function main() {
+function main(options) {
 	const canvas = document.getElementById("glCanvas");
 	fitCanvasToWindow();
 	// Initialize the GL context
@@ -35,7 +35,7 @@ function main() {
 	}
 
 	// Create application instance
-	app = new Application(gl);
+	app = new Application(gl, options);
 	app.load();
 
 	// Render cycle
@@ -66,7 +66,27 @@ function onResize() {
 		app.onResize(canvas.clientWidth, canvas.clientHeight);
 	}
 }
+function onSimpleButtonClick() {
+	// Hide variant selection menu
+	document.getElementById("variantSelection").style.display = 'none';
+	// Start main routine
+	main({
+		useQuadTree: false
+	});
+}
+function onComplicatedButtonClick() {
+	// Hide variant selection menu
+	document.getElementById("variantSelection").style.display = 'none';
+	// Start main routine
+	main({
+		useQuadTree: true
+	});
+}
+function chooseVariant() {
+	document.getElementById("simpleButton").onclick = onSimpleButtonClick;
+	document.getElementById("complicatedButton").onclick = onComplicatedButtonClick;
+}
 
-window.onload = main;
+window.onload = chooseVariant;
 window.onbeforeunload = onUnload;
 window.onresize = onResize;

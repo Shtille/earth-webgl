@@ -18,12 +18,14 @@ import { PlanetCube } from './planet-cube.js';
 /**
  * Defines application class.
  *
- * @param {WebGLRenderingContext} gl  Rendering context.
+ * @param {WebGLRenderingContext} gl       Rendering context.
+ * @param {Object}                options  Options object. Contains:
+ *                                         {Boolean} useQuadTree
  */
-function Application(gl) {
+function Application(gl, options) {
 	var gl = gl;
 
-	const useQuadTree = true;
+	const useQuadTree = options != null && options.useQuadTree;
 
 	const fieldOfView = 45 * Math.PI / 180;   // field of view in Y direction in radians
 	const kCameraDistance = kEarthRadius * 5.0;
