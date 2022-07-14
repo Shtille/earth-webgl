@@ -9,6 +9,7 @@ import { PlanetMap } from './planet-map.js';
 import { PlanetTree } from './planet-tree.js';
 import { PlanetTreeNode } from './planet-tree-node.js';
 import { PlanetRequest, PlanetRequestType } from './planet-request.js';
+import { TileProvider } from './tile-provider.js';
 
 /**
  * Defines planet cube class.
@@ -23,6 +24,7 @@ import { PlanetRequest, PlanetRequestType } from './planet-request.js';
  *      - {Object}                camera          The camera.
  *      - {Object}                frustum         The frustum.
  *      - {Number}                gridSize        Grid size (vertices per tile side). Optional.
+ *      - {String}                serverUrl       The server URL.
  */
 function PlanetCube(options) {
 	var gl = options.gl;
@@ -33,6 +35,8 @@ function PlanetCube(options) {
 	var camera = options.camera;
 	var frustum = options.frustum;
 	var gridSize = options.gridSize || 17;
+
+	var tileProvider = options.serverUrl ? new TileProvider({serverUrl: options.serverUrl}) : null;
 
 	var faces = null;
 	var tileMesh = null;
@@ -242,6 +246,15 @@ function PlanetCube(options) {
 	 */
 	this.getGL = function() {
 		return gl;
+	};
+
+	/**
+	 * Gets tile provider.
+	 *
+	 * @return {TileProvider} The tile provider.
+	 */
+	this.getTileProvider = function() {
+		return tileProvider;
 	};
 
 	/**

@@ -77,9 +77,18 @@ function onSimpleButtonClick() {
 function onComplicatedButtonClick() {
 	// Hide variant selection menu
 	document.getElementById("variantSelection").style.display = 'none';
-	// Start main routine
-	main({
-		useQuadTree: true
+	// Load settings
+	$.ajax({
+		url: 'res/settings.json',
+		type: 'GET',
+		dataType: 'json',
+		success: function(settings) {
+			// Start main routine
+			main({
+				useQuadTree: true,
+				serverUrl: settings.serverUrl,
+			});
+		}
 	});
 }
 function chooseVariant() {

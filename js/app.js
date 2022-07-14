@@ -20,12 +20,14 @@ import { PlanetCube } from './planet-cube.js';
  *
  * @param {WebGLRenderingContext} gl       Rendering context.
  * @param {Object}                options  Options object. Contains:
- *                                         {Boolean} useQuadTree
+ *      - {Boolean} useQuadTree  Whether use quad tree.
+ *      - {String}  serverUrl    Server URL. Optional.
  */
 function Application(gl, options) {
 	var gl = gl;
 
 	const useQuadTree = options != null && options.useQuadTree;
+	const serverUrl = (options != null) ? options.serverUrl : null;
 
 	const fieldOfView = 45 * Math.PI / 180;   // field of view in Y direction in radians
 	const kCameraDistance = kEarthRadius * 5.0;
@@ -329,7 +331,8 @@ function Application(gl, options) {
 				radius: kInnerRadius,
 				position: kEarthPosition,
 				camera: camera,
-				frustum: frustum
+				frustum: frustum,
+				serverUrl: serverUrl,
 			});
 			planetCube.setParameters(fieldOfView, height);
 

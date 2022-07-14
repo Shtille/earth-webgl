@@ -73,10 +73,18 @@ function PlanetMap(gl) {
 	var requestLoad = function(node) {
 		var value = map.get(node);
 		var face = node.tree.getFace();
-		if (renderer.request(value.imageData, face, node.lod, node.x, node.y)) {
-			// Image is ready
-			value.texture.loadFromImageData(value.imageData);
-			value.ready = true;
+		var tileProvider = node.tree.getCube().getTileProvider();
+		if (tileProvider !== null) {
+			// Tile provider exists, so use it to obtain images.
+			var url = tileProvider.getTileUrl(face, node.lod, node.x, node.y);
+			value.texture.loadFromFile(url, function(image){ value.ready = true; }, null, this);
+		} else {
+			// Tile provider doesn't exist, render tiles by our own.
+			if (renderer.request(value.imageData, face, node.lod, node.x, node.y)) {
+				// Image is ready
+				value.texture.loadFromImageData(value.imageData);
+				value.ready = true;
+			}
 		}
 	};
 
